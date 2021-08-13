@@ -2,45 +2,24 @@
  * Do not change Module name 
 */
 module main;
-
     reg clock;
     reg reset;
     
-    reg [511:0] block;
-    reg [255:0] initial_hash;
-    
-    wire [255:0] calculated_hash;
-    
-    wire [31:0] selected;
-
-    wire [5:0] cnt;
-    wire [6:0] cnt2;
-    
-    counter c0 (.clock(clock), .reset(reset), .cnt(cnt));
-    counter_7 c1 (.clock(clock), .reset(reset), .cnt(cnt2));
-    
-    block_selector bs0 (.block(block), .index(cnt[3:0]), .item(selected));
-    
-    sha256_round sha0 (
-        .clock(clock),
-        .reset(reset),
-        .block(selected),
-        .initial_hash(initial_hash),
-        .calculated_hash(calculated_hash));
+    reg [255:0] pre_hash;
 
     reg [31:0] merkle;
     reg [31:0] b_time;
     reg [31:0] bits;
     reg [31:0] nonce;
 
-    wire [31:0] word;
-
-    word_selector ws0 (initial_hash, merkle, b_time, bits, nonce, cnt2, word);
-
     wire found;
     wire [255:0] bc_hash;
 
-    bitcoin bc0 (initial_hash, merkle, b_time, bits, nonce, clock, reset, found, bc_hash);
+    bitcoin_hash_core bc0 (pre_hash, merkle, b_time, bits, nonce, clock, reset, found, bc_hash);
+
+    wire [6:0] count;
+
+    counter #(.N(7)) c0 (clock, reset, count);
         
     always #5 clock = ~clock;
 
@@ -49,8 +28,7 @@ module main;
         clock <= 0;
         reset <= 0;
         
-        block <= 512'h00000058000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000726C64806F20776F68656C6C;
-        initial_hash <= 256'h7a78da2dcd5bce692f56a9da07e86e372d2810a016e669ba05c567139524c593;
+        pre_hash <= 256'h7a78da2dcd5bce692f56a9da07e86e372d2810a016e669ba05c567139524c593;
 
         merkle <= 32'hf1fc122b;
         b_time <= 32'hc7f5d74d;
@@ -59,275 +37,13 @@ module main;
         
         #1 reset <= 1;
 
-        $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, bc_hash);
-        
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h %d", cnt2, word, bc_hash, found);
+        #630 $display("%d %h %d", count, bc_hash, found);
+        #640 $display("%d %h %d", count, bc_hash, found);
 
         nonce <= 32'h42a14695;
 
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, bc_hash);
-        
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h", cnt2, word, word);
-        #10 $display("%d %d %h %d", cnt2, word, bc_hash, found);
-        
-        /*$display("%h decimal: %d", calculated_hash, calculated_hash[0 * 32 + 31:0 * 32 + 0]);
-        #10 $display("%h decimal: %d", calculated_hash, calculated_hash[0 * 32 + 31:0 * 32 + 0]);
-        #10 $display("%h decimal: %d", calculated_hash, calculated_hash[0 * 32 + 31:0 * 32 + 0]);
-        #10 $display("%h decimal: %d", calculated_hash, calculated_hash[0 * 32 + 31:0 * 32 + 0]);
-        
-        
-        #600 $display("%h decimal: %d", calculated_hash, calculated_hash[0 * 32 + 31:0 * 32 + 0]);*/
+        #640 $display("%d %h %d", count, bc_hash, found);
+        #640 $display("%d %h %d", count, bc_hash, found);
     
     
         $finish ;
@@ -335,7 +51,7 @@ module main;
 endmodule
 
 // Input the pre hash (just the hash of the first sha block of the bitcoin block) and the remaining data and 128 clock cycles later output whether we have a suitable nonce
-module bitcoin(input [255:0] pre_hash,
+module bitcoin_hash_core(input [255:0] pre_hash,
                 input [31:0] merkle,
                 input [31:0] b_time,
                 input [31:0] bits,
@@ -348,7 +64,7 @@ module bitcoin(input [255:0] pre_hash,
     // 7-bit counter
     wire [6:0] count;
 
-    counter_7 ct0 (.clock(clock), .reset(reset), .cnt(count));
+    counter #(.N(7)) ct0 (.clock(clock), .reset(reset), .cnt(count));
 
     // Register storing the hash generated by the first digest
     reg [255:0] calculated_hash;
@@ -391,7 +107,7 @@ module bitcoin(input [255:0] pre_hash,
 
 endmodule
 
-//Convert the 4-byte floating point target into a 256-bit integer target
+//Convert the 4-byte floating point target into a 256-bit integer target. See https://en.bitcoin.it/wiki/Target and https://learnmeabitcoin.com/technical/bits for more info
 module float_target_to_int(input [31:0] float_target,
                             output [255:0] int_target);
               
@@ -419,16 +135,19 @@ module correct_endianness(input [255:0] in,
     genvar i;
     generate
         for (i = 0; i < 8; i = i + 1) begin : correct_generate
-            correct_word cw0 (in[i * 32 + 31:i*32], out[i * 32 + 31:i*32]);
+            correct_word cw0 (in[32 * i +: 32], out[32 * i +: 32]);
         end
     endgenerate
 
 endmodule
 
-// 7-bit counter
-module counter_7(input clock,
-                input reset,
-                output reg [6:0] cnt);
+// N-bit counter
+module counter
+    #(parameter N = 0)
+
+    (input clock,
+    input reset,
+    output reg [N-1:0] cnt);
                 
     always @ (negedge clock) begin 
         if (!reset)
@@ -439,6 +158,7 @@ module counter_7(input clock,
                 
 endmodule
 
+// Select a word from the two 512-bit blocks
 module word_selector(input [255:0] first_hash,
                     input [31:0] merkle,
                     input [31:0] b_time,
@@ -448,6 +168,7 @@ module word_selector(input [255:0] first_hash,
                     output [31:0] word);
 
     assign word = count == 0 ? merkle : 
+                    //First block (for the first SHA digest) hashes the block header
                     (count == 1 ? b_time : 
                     (count == 2 ? bits : 
                     (count == 3 ? nonce : 
@@ -455,6 +176,7 @@ module word_selector(input [255:0] first_hash,
                     (count >= 5 && count <= 14 ? 0 : 
                     (count == 15 ? 32'h00000280 : 
 
+                    // Second block (for the second SHA digest) hashes the previous digest
                     (count >= 64 && count <= 7+64 ? first_hash[32 * (count-64) +: 32] : 
                     (count == 8+64 ? 32'h80000000 : 
                     (count >= 9+64 && count <= 14+64 ? 0 : 
@@ -473,7 +195,7 @@ module sha256_round(input clock,
     // Counter
     wire [5:0] index;
     
-    counter ct0 (.clock(clock), .reset(reset), .cnt(index));
+    counter #(.N(6)) ct0 (.clock(clock), .reset(reset), .cnt(index));
                     
     // Shift register
     wire [31:0] selected_word;
@@ -501,20 +223,10 @@ module sha256_round(input clock,
         .m15(m15),
         .m16(m16),
         .extension(extension));
-        
-    // Block selecter
-    
-    //wire [31:0] block_word;
-    
-    //block_selector bs0 (.block(block), .index(index[3:0]), .item(block_word));
-    
-    // Extension/block
-    
-    extension_selector es0 (
-        .extended(extension), 
-        .selected(block), 
-        .index(index), 
-        .choice(selected_word));
+
+    // Extension/block - If we need words w[0..15] then we select get them from the 512-bit block. Otherwise we use the value from the extend_logic module
+
+    assign selected_word = index < 16 ? block : extension;
         
     // Constants
     
@@ -543,24 +255,18 @@ module sha256_round(input clock,
         .in_hash(compressed_hash),
         .out_hash(stored_hash));
     
-    // Digest selector 
-    
-    digest_selector ds0 (
-        .initial_hash(initial_hash), 
-        .rolling_hash(stored_hash), 
-        .index(index), 
-        .hash(compress_hash));
-        
-    assign calculated_hash[32 * 0 +: 32] = compressed_hash[32 * 0 +: 32] + initial_hash[32 * 0 +: 32];
-    assign calculated_hash[32 * 1 +: 32] = compressed_hash[32 * 1 +: 32] + initial_hash[32 * 1 +: 32];
-    assign calculated_hash[32 * 2 +: 32] = compressed_hash[32 * 2 +: 32] + initial_hash[32 * 2 +: 32];
-    assign calculated_hash[32 * 3 +: 32] = compressed_hash[32 * 3 +: 32] + initial_hash[32 * 3 +: 32];
-    assign calculated_hash[32 * 4 +: 32] = compressed_hash[32 * 4 +: 32] + initial_hash[32 * 4 +: 32];
-    assign calculated_hash[32 * 5 +: 32] = compressed_hash[32 * 5 +: 32] + initial_hash[32 * 5 +: 32];
-    assign calculated_hash[32 * 6 +: 32] = compressed_hash[32 * 6 +: 32] + initial_hash[32 * 6 +: 32];
-    assign calculated_hash[32 * 7 +: 32] = compressed_hash[32 * 7 +: 32] + initial_hash[32 * 7 +: 32];
+    // Digest selector - The first hash used in compression is the initial hash. After this we use the generated hash (rolling hash)
 
+    assign compress_hash = index == 0 ? initial_hash : stored_hash;
 
+    //Add the hash generated by the rounds to the input hash
+
+    genvar i;
+    generate
+        for (i = 0; i < 8; i = i + 1)  begin : sum_generate
+            assign calculated_hash[32 * i +: 32] = compressed_hash[32 * i +: 32] + initial_hash[32 * i +: 32];
+        end
+    endgenerate
                         
 endmodule
 
@@ -578,31 +284,6 @@ module rolling_hash(input clock,
     end
                     
 endmodule
-
-// 6-bit counter
-module counter(input clock,
-                input reset,
-                output reg [5:0] cnt);
-                
-    always @ (negedge clock) begin 
-        if (!reset)
-            cnt <= 0;
-        else
-            cnt = cnt + 1;
-    end
-                
-endmodule
-
-// The first hash used in compression is the initial hash. After this we use the generated hash (rolling hash)
-module digest_selector(input [255:0] initial_hash,
-                        input [255:0] rolling_hash,
-                        input [5:0] index,
-                        output [255:0] hash);
-                        
-    assign hash = index == 0 ? initial_hash : rolling_hash;
-                        
-endmodule
-                        
 
 // Complete one round of compression using the input hash, expanded message schedule array and the round constants 
 module compression_logic(input [31:0] m,
@@ -625,8 +306,6 @@ module compression_logic(input [31:0] m,
     wire [31:0] S0;
     wire [31:0] maj;
     wire [31:0] temp2;
-    
-    wire [31:0] test;
 
     assign a = input_hash[31:0];
     assign b = input_hash[63:32];
@@ -645,112 +324,21 @@ module compression_logic(input [31:0] m,
     assign maj = (a & b) ^ (a & c) ^ (b & c);
     assign temp2 = S0 + maj;
     
-    assign test = S1;
-    
     assign output_hash = { g, f, e, d + temp1, c, b, a, temp1 + temp2 };
                         
 endmodule
 
 //Use index to select from one of the 64 SHA256 round constants
 //Node: This would be implemented as a simple lookup-table (6-bit input, 32-bit output)
-// Todo: Find a less cumbersome way to do this
 module constants(input [5:0] index,
                  output [31:0] constant);
 					  
-		wire [2047:0] k;
+	wire [2047:0] k;
 		
-		assign k = 2048'hc67178f2bef9a3f7a4506ceb90befffa8cc7020884c8781478a5636f748f82ee682e6ff35b9cca4f4ed8aa4a391c0cb334b0bcb52748774c1e376c0819a4c116106aa070f40e3585d6990624d192e819c76c51a3c24b8b70a81a664ba2bfe8a192722c8581c2c92e766a0abb650a735453380d134d2c6dfc2e1b213827b70a851429296706ca6351d5a79147c6e00bf3bf597fc7b00327c8a831c66d983e515276f988da5cb0a9dc4a7484aa2de92c6f240ca1cc0fc19dc6efbe4786e49b69c1c19bf1749bdc06a780deb1fe72be5d74550c7dc3243185be12835b01d807aa98ab1c5ed5923f82a459f111f13956c25be9b5dba5b5c0fbcf71374491428a2f98;
-    
-    //localparam logic [2047:0] k =  2048'hc67178f2bef9a3f7a4506ceb90befffa8cc7020884c8781478a5636f748f82ee682e6ff35b9cca4f4ed8aa4a391c0cb334b0bcb52748774c1e376c0819a4c116106aa070f40e3585d6990624d192e819c76c51a3c24b8b70a81a664ba2bfe8a192722c8581c2c92e766a0abb650a735453380d134d2c6dfc2e1b213827b70a851429296706ca6351d5a79147c6e00bf3bf597fc7b00327c8a831c66d983e515276f988da5cb0a9dc4a7484aa2de92c6f240ca1cc0fc19dc6efbe4786e49b69c1c19bf1749bdc06a780deb1fe72be5d74550c7dc3243185be12835b01d807aa98ab1c5ed5923f82a459f111f13956c25be9b5dba5b5c0fbcf71374491428a2f98;
+	assign k = 2048'hc67178f2bef9a3f7a4506ceb90befffa8cc7020884c8781478a5636f748f82ee682e6ff35b9cca4f4ed8aa4a391c0cb334b0bcb52748774c1e376c0819a4c116106aa070f40e3585d6990624d192e819c76c51a3c24b8b70a81a664ba2bfe8a192722c8581c2c92e766a0abb650a735453380d134d2c6dfc2e1b213827b70a851429296706ca6351d5a79147c6e00bf3bf597fc7b00327c8a831c66d983e515276f988da5cb0a9dc4a7484aa2de92c6f240ca1cc0fc19dc6efbe4786e49b69c1c19bf1749bdc06a780deb1fe72be5d74550c7dc3243185be12835b01d807aa98ab1c5ed5923f82a459f111f13956c25be9b5dba5b5c0fbcf71374491428a2f98;
     
     assign constant = k[32 * index +: 32];
-
-    /*assign constant = { k[index * 32 + 31],
-                    k[index * 32 + 30],
-                    k[index * 32 + 29],
-                    k[index * 32 + 28],
-                    k[index * 32 + 27],
-                    k[index * 32 + 26],
-                    k[index * 32 + 25],
-                    k[index * 32 + 24],
-                    k[index * 32 + 23],
-                    k[index * 32 + 22],
-                    k[index * 32 + 21],
-                    k[index * 32 + 20],
-                    k[index * 32 + 19],
-                    k[index * 32 + 18],
-                    k[index * 32 + 17],
-                    k[index * 32 + 16],
-                    k[index * 32 + 15],
-                    k[index * 32 + 14],
-                    k[index * 32 + 13],
-                    k[index * 32 + 12],
-                    k[index * 32 + 11],
-                    k[index * 32 + 10],
-                    k[index * 32 + 9],
-                    k[index * 32 + 8],
-                    k[index * 32 + 7],
-                    k[index * 32 + 6],
-                    k[index * 32 + 5],
-                    k[index * 32 + 4],
-                    k[index * 32 + 3],
-                    k[index * 32 + 2],
-                    k[index * 32 + 1],
-                    k[index * 32 + 0]};*/
         
-endmodule
-
-// Use an index to select an element in an array of 64 lots of 32-bit words
-// Todo: Find a less cumbersome way to do this
-module block_selector(input [511:0] block,
-                        input [3:0] index,
-                        output [31:0] item);
-
-    assign item = block[32 * index +: 32];
-         
-    /*assign item = { block[index * 32 + 31],
-                    block[index * 32 + 30],
-                    block[index * 32 + 29],
-                    block[index * 32 + 28],
-                    block[index * 32 + 27],
-                    block[index * 32 + 26],
-                    block[index * 32 + 25],
-                    block[index * 32 + 24],
-                    block[index * 32 + 23],
-                    block[index * 32 + 22],
-                    block[index * 32 + 21],
-                    block[index * 32 + 20],
-                    block[index * 32 + 19],
-                    block[index * 32 + 18],
-                    block[index * 32 + 17],
-                    block[index * 32 + 16],
-                    block[index * 32 + 15],
-                    block[index * 32 + 14],
-                    block[index * 32 + 13],
-                    block[index * 32 + 12],
-                    block[index * 32 + 11],
-                    block[index * 32 + 10],
-                    block[index * 32 + 9],
-                    block[index * 32 + 8],
-                    block[index * 32 + 7],
-                    block[index * 32 + 6],
-                    block[index * 32 + 5],
-                    block[index * 32 + 4],
-                    block[index * 32 + 3],
-                    block[index * 32 + 2],
-                    block[index * 32 + 1],
-                    block[index * 32 + 0]};*/
-                        
-endmodule
-
-// If we need words w[0..15] then we select get them from the 512-bit block. Otherwise we use the value from the extend_logic module 
-module extension_selector(input [31:0] extended,
-                            input [31:0] selected,
-                            input [5:0] index,
-                            output [31:0] choice);
-         
-    assign choice = index < 16 ? selected : extended; 
-                            
 endmodule
 
 // Logic to extend the last 16 words into a 17th
@@ -792,9 +380,9 @@ module extender_shifter(input [31:0] word,
     end
     
     // Output the 4 values (w[i-2], w[i-7], w[i-15] and w[i-16])
-    assign m2 = m_register[1 * 32 + 31:1 * 32];
-    assign m7 = m_register[6 * 32 + 31:6 * 32];
-    assign m15 = m_register[14 * 32 + 31:14 * 32];
-    assign m16 = m_register[15 * 32 + 31:15 * 32];
+    assign m2 = m_register[1 * 32 +: 32];
+    assign m7 = m_register[6 * 32 +: 32];
+    assign m15 = m_register[14 * 32 +: 32];
+    assign m16 = m_register[15 * 32 +: 32];
 
 endmodule
