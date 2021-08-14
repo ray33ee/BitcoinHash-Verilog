@@ -5,61 +5,199 @@ module main;
     reg clock;
     reg reset;
     
-    reg [255:0] pre_hash;
+    wire [7:0] founds1;
+    wire [7:0] founds2;
 
-    reg [31:0] merkle;
-    reg [31:0] b_time;
-    reg [31:0] bits;
-    reg [31:0] nonce;
+    reg [31:0] data;
 
-    wire found;
-    wire [255:0] bc_hash;
+    wire mode;
 
-    bitcoin_hash_core bc0 (pre_hash, merkle, b_time, bits, nonce, clock, reset, found, bc_hash);
+    wire [9:0] count;
 
-    wire [6:0] count;
+    bitcoin_hash_array #(.CORE_COUNT(8)) bha0 (clock, reset, data, 0, founds1);
+    bitcoin_hash_array #(.CORE_COUNT(8)) bha1 (clock, reset, data, 1, founds2);
 
-    counter #(.N(7)) c0 (clock, reset, count);
-        
+    
+
     always #5 clock = ~clock;
 
     initial begin
     
         clock <= 0;
         reset <= 0;
-        
-        pre_hash <= 256'h7a78da2dcd5bce692f56a9da07e86e372d2810a016e669ba05c567139524c593;
 
-        merkle <= 32'hf1fc122b;
-        b_time <= 32'hc7f5d74d;
-        bits <= 32'hf2b9441a;
-        nonce <= 32'h42a14696;
+        /*rpre_hash <= 256'h7a78da2dcd5bce692f56a9da07e86e372d2810a016e669ba05c567139524c593;
         
+        rmerkle <= 32'hf1fc122b;
+        rb_time <= 32'hc7f5d74d;
+        rbits <= 32'hf2b9441a;
+        nonce <= 32'h42a14696;*/
+        
+        //Bring the reset line up
         #1 reset <= 1;
 
-        #630 $display("%d %h %d", count, bc_hash, found);
-        #640 $display("%d %h %d", count, bc_hash, found);
+        #1 reset <= 0;
 
-        nonce <= 32'h42a14695;
+        //Load the 32-bit top of the merkle hash
+        data <= 32'hf1fc122b;
 
-        #640 $display("%d %h %d", count, bc_hash, found);
-        #640 $display("%d %h %d", count, bc_hash, found);
+        // Load the 32-bit time
+        #10 data <= 32'hc7f5d74d;
+
+        // Load the bits
+        #10 data <= 32'hf2b9441a;
+
+        //Load the 256-bit pre hash
+        #10 data <= 32'h9524c593;
+
+        #10 data <= 32'h05c56713;
+
+        #10 data <= 32'h16e669ba;
+
+        #10 data <= 32'h2d2810a0;
+
+        #10 data <= 32'h07e86e37;
+
+        #10 data <= 32'h2f56a9da;
+
+        #10 data <= 32'hcd5bce69;
+
+        #10 data <= 32'h7a78da2d;
+
+        #10
+
+        // Input the nonce
+        data <= 32'h42a14694 - 24;
+
+        #1270 $display("%d %b %b", count, founds1, founds2);
+
+        data <= 32'h42a14694 - 8;
+
+        #1280 $display("%d %b %b", count, founds1, founds2);
     
     
         $finish ;
     end
 endmodule
 
+// A bank of bitcoin_hash_cores which calculate the hash of sequential nonces in parallel.
+// The array uses a vector of BUS_WIDTH to load the data in parallel.
+// On reset, 22 words must be clocked into the device. These represent the block-specific data.
+// Before the 128-clock pulses, the nonce must be clocked in.
+module bitcoin_hash_array
+    #(parameter CORE_COUNT = 1 //Number of bitcoin_hash_cores
+      )  
+
+    (input clock,
+    input reset,
+    input [31:0] parallel_data,
+    input [7:0] nonce_scalar, //(as a power of 2) This scalar is used to allow the chaining of multiple bitcoin_hash_array modules on the same line, and ensuring each core gets its own nonce. The nonce used in the hash is calculated as nonce = GLOBAL_NONCE +  (CORE_COUNT * nonce_scalar) + NONCE_OFFSET. This of this as like an I2C address
+    output [CORE_COUNT-1:0] founds
+    //output [31:0] nonce,
+    );
+
+    // Calculate the array_witdh - Value used to allow multiple arrays to be chained together on the same bus.
+    // Eacharray is given a nonce_scalar. 
+    wire [31:0] array_width;
+
+    assign array_width = CORE_COUNT * nonce_scalar;
+
+    //State module. Outputs 0 if in initial mode, and 1 if in loop mode
+    wire mode;
+
+    array_state as0 (clock, reset, mode);
+
+    // Block shift register
+    wire [255:0] pre_hash;
+
+    wire [31:0] merkle;
+    wire [31:0] b_time;
+    wire [31:0] bits;
+
+    block_specific_shift_register bsr0 (parallel_data, ~mode & clock, pre_hash, merkle, b_time, bits);
+
+    // Bitcoin core
+    wire [CORE_COUNT-1:0] found_vector;
+
+    wire [255:0] out_hash;
+
+    genvar i;
+    generate
+        for (i = 0; i < CORE_COUNT; i = i + 1) begin : bitcoin_core_generate
+            bitcoin_hash_core #(.NONCE_OFFSET(i)) bhc0 (pre_hash, merkle, b_time, bits, parallel_data, array_width, mode & clock, reset, found_vector[i], out_hash);
+        end
+    endgenerate
+
+    assign founds = found_vector;
+
+    // Reduce the found status of each core
+    //assign found = |found_vector;
+
+endmodule
+
+module block_specific_shift_register(
+    input [31:0] parallel_data, 
+    input clock, 
+    output  [255:0] pre_hash,
+    output  [31:0] merkle,
+    output  [31:0] b_time,
+    output  [31:0] bits);
+
+    reg [351:0] block_data;
+
+    always @ (posedge clock) begin
+        block_data = { block_data[319:0], parallel_data };
+    end
+
+    assign merkle = block_data[32 * 10 +: 32];
+    assign b_time = block_data[32 * 9 +: 32];
+    assign bits = block_data[32 * 8 +: 32];
+
+    assign pre_hash = { block_data[32 * 0 +: 32], block_data[32 * 1 +: 32], block_data[32 * 2 +: 32], block_data[32 * 3 +: 32], block_data[32 * 4 +: 32], block_data[32 * 5 +: 32], block_data[32 * 6 +: 32], block_data[32 * 7 +: 32]  };
+
+endmodule   
+
+module array_state(input clock, input reset, output loop_or_not_intial);
+
+    reg [4:0] count;
+
+    /*always @ (negedge clock) begin
+        if (count != 11) 
+            count = count + 1;
+    end
+
+    always @ (posedge reset) begin         
+        count <= 0;
+    end*/
+
+    always @ (negedge clock or posedge reset) begin
+        if (reset == 1'b1)
+            count <= 0;
+
+        if (clock == 1'b0)
+            if (count != 11) 
+                count <= count + 1;
+    end
+
+    assign loop_or_not_intial = count == 11;
+
+endmodule
+
 // Input the pre hash (just the hash of the first sha block of the bitcoin block) and the remaining data and 128 clock cycles later output whether we have a suitable nonce
-module bitcoin_hash_core(input [255:0] pre_hash,
+module bitcoin_hash_core
+                #(parameter NONCE_OFFSET = 0)
+
+                (input [255:0] pre_hash,
                 input [31:0] merkle,
                 input [31:0] b_time,
                 input [31:0] bits,
-                input [31:0] nonce, //global nonce + nonce offset
+                input [31:0] nonce,
+                input [31:0] array_width, // nonce_scalar * CORE_COUNT. Used to calculate the nonce for a specific core. 
                 input clock,
                 input reset,
                 output found,
-                output [255:0] final_hash);
+                output [255:0] o_hash
+                );
 
     // 7-bit counter
     wire [6:0] count;
@@ -83,7 +221,7 @@ module bitcoin_hash_core(input [255:0] pre_hash,
     // Block word
     wire [31:0] word;
 
-    word_selector ws0 (calculated_hash, merkle, b_time, bits, nonce, count, word);
+    word_selector ws0 (calculated_hash, merkle, b_time, bits, nonce + array_width + NONCE_OFFSET, count, word);
 
     // SHA rounds
     wire [255:0] output_hash;
@@ -103,7 +241,7 @@ module bitcoin_hash_core(input [255:0] pre_hash,
     //Compare the outputted hash with the target
     assign found = count == 127 && _output_hash <= target;
 
-    assign final_hash = _output_hash;
+    assign o_hash = _output_hash;
 
 endmodule
 
@@ -149,11 +287,12 @@ module counter
     input reset,
     output reg [N-1:0] cnt);
                 
-    always @ (negedge clock) begin 
-        if (!reset)
-            cnt <= 0;
+    always @ (negedge clock or posedge reset) begin 
+        if (reset == 1'b1)
+            cnt = 0;
+        
         else
-            cnt = cnt + 1;
+            cnt <= cnt + 1;
     end
                 
 endmodule
@@ -276,11 +415,12 @@ module rolling_hash(input clock,
                     input [255:0] in_hash,
                     output reg [255:0] out_hash);
                     
-    always @ (posedge clock) begin 
-        if (!reset)
+    always @ (posedge clock or posedge reset) begin 
+        if (reset == 1'b1)
             out_hash <= 0;
-        else
-            out_hash = in_hash;
+
+        if (clock == 1'b1)
+            out_hash <= in_hash;
     end
                     
 endmodule
@@ -371,12 +511,12 @@ module extender_shifter(input [31:0] word,
     reg [511:0] m_register;
 
     // Shift the values by one word and insert the input word at the beginning
-    always @ (posedge clock) begin
-        if (!reset)
+    always @ (posedge clock or posedge reset) begin
+        if (reset == 1'b1)
             m_register <= 0;
-        else begin
+        
+        if (clock == 1'b1)
             m_register <= { m_register[479:0], word };
-        end
     end
     
     // Output the 4 values (w[i-2], w[i-7], w[i-15] and w[i-16])

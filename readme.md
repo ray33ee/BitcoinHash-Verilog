@@ -61,3 +61,21 @@ These values are stored and kept until either a) the device resets/powers down o
 - First global nonce
 
 Subsequent nonces must be sent every 128 clock pulses, i.e. at the start of the calculation.
+
+# Bitcoin hash core
+
+Each bitcoin hash core is capable of computing one bitcoin hash (i.e. testing a single nonce) every 128 clock cycles.
+
+# Array
+
+Each array contains `CORE_COUNT` cores. Each array is given a unique `nonce_scalar` (externally wired, like an I2C address) 
+
+each nonce is calculated as nonce = GLOBAL_NONCE +  (CORE_COUNT * nonce_scalar) + NONCE_OFFSET. 
+
+Think of cores as a 2D array that is width CORE_COUNT and the height is the number of arrays. 
+
+The idea is to ensure that if we use multiple arrays, and each array has multiple cores, each core gets a unique nonce without wasting time sending nonces to each core/array. By chosing the correct parameters and externally wiring each nonce_scalar, we can ensure each core is given a unique nonce.
+
+# Reset line
+
+Instead of going from low to high and staying high, the reset line must be clocked to initiate (low, high, low), During normal operation, the reset line must be kept low. 
